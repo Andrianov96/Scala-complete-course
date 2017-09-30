@@ -35,17 +35,13 @@ object Competition extends App {
       val foreignersName = f._1
       val foreignersValue = f._2
       val str = localName + " vs " + foreignersName
-      //println(localValue + " " + foreignersValue)
-      //val r = localValue - foreignersValue
       str  -> (localValue - foreignersValue)
     }
-    println(i)
     var finalResult = 0
     for (r <- results) {
       if (r._2 >0) finalResult = finalResult + 1
       else if (r._2 < 0) finalResult = finalResult - 1
     }
-  //println(finalResult)
   if (finalResult > 0 ){
     println("Наша взяла")
   } else if (finalResult < 0) {

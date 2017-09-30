@@ -31,22 +31,17 @@ object Authentication extends App {
   import AuthenticationData._
 
   val authByCard: PartialFunction[User, User] = {
-    def apply(user: User) = if (registeredCards(user.credentials)) user
-
-    def isDefinedAt (d:User) = d.isInstanceOf[CardUser]
+    case user@CardUser(_, credentials) if registeredCards.contains(credentials) => user
   }
 
  val authByLP: PartialFunction[User, User] = {
-   def apply(user: LPUser) = if (registeredLoginAndPassword(user.credentials)) user
-
-   def isDefinedAt (d:User) = d.isInstanceOf[LPUser]
+   case user@LPUser(_, lPCredentials) if registeredLoginAndPassword.contains(lPCredentials) => user
  }
 
   val authenticated: List[Option[User]] = for (user <- testUsers) yield {
-    //var res = Nil
     user match {
-      case x:CardUser => Some(authByCard(user))
-      case LPUser(_,_) => Some(authByLP(user))
+      case x:CardUser => authByCard.lift(x)
+      case x:LPUser => authByLP.lift(x)
       case _ => None
     }
   }

@@ -3,12 +3,12 @@ package lectures.functions
 import org.scalatest.{FlatSpec, Matchers}
 
 class Fibonacci2Test extends FlatSpec with Matchers {
-  "Fibbonaci2(1)" should "be equal 1" in{
+  "Fibbonaci2" should "be equal 1 on input 1" in{
     var res = Fibonacci2.fibs2(1)
     res should be(1)
   }
 
-  "Fibbonaci2(6)" should "be equal 8" in {
+  "Fibbonaci2" should "be equal 8 on input 6" in {
     var res = Fibonacci2.fibs2(6)
     res should be(8)
   }

@@ -52,13 +52,7 @@ case class Connection(resource: Resource) {
   private val defaultResult = "something went wrong!"
 
   //ConnectionProducer.result(this)
-  def result(): String = {
-    Option(ConnectionProducer.result(this)) match {
-      case a:Some[String] => a.get
-      case None => defaultResult
-    }
-
-  }
+  def result(): String = Option(ConnectionProducer.result(this)).getOrElse(defaultResult)
 }
 
 case class Resource(name: String)
@@ -66,11 +60,10 @@ case class Resource(name: String)
 object OptionVsNPE extends App {
 
   def businessLogic: String = try {
-    var getRes = Option(ResourceProducer.produce)
-    if (getRes.isEmpty) throw new ResourceException
-    var getCon = Option(ConnectionProducer.produce(getRes.get))
+    val Res = Option(ResourceProducer.produce).getOrElse(throw new ResourceException)
+    var getCon = Option(ConnectionProducer.produce(Res))
     while (getCon.isEmpty){
-      getCon = Option(ConnectionProducer.produce(getRes.get))
+      getCon = Option(ConnectionProducer.produce(Res))
     }
     val result: String = getCon.get.result()
     println(result)

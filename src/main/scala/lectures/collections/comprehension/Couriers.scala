@@ -24,7 +24,7 @@ case class Traffic(degree: Double)
 
 object Courier {
   def couriers(courierCount: Int): List[Courier] =
-    List.range(1, courierCount + 1).map{ a =>
+    (1 to courierCount).toList.map{ a =>
       Courier(a)
     }
 }
@@ -35,7 +35,7 @@ case class Courier(index: Int) {
 
 object Address {
   def addresses(addressesCount: Int): List[Address] =
-    List.range(1, addressesCount + 1).map{ i =>
+    (1 to addressesCount).toList.map{ i =>
       Address(s"$i$i$i")
     }
 }
@@ -55,8 +55,7 @@ object CouriersWithComprehension extends App {
 
   // какие адреса были обслужены
   def serveAddresses(addresses: List[Address], couriers: List[Courier]) = {
-    val trafficDegree = traffic().degree
-    val res1 = couriers.filter(p => trafficDegree < 5).foldLeft(addresses) { (address: List[Address], courier: Courier) =>
+    val res1 = couriers.filter(p => traffic().degree < 5).foldLeft(addresses) { (address: List[Address], courier: Courier) =>
       address.drop(courier.canServe)
     }
     addresses.take(addresses.length - res1.length)

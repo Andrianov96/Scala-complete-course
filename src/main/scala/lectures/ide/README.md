@@ -13,5 +13,5 @@
 10. **Ctrl + Shift + T** - переход к тесту
 
 # Live templates
-1. 'ararb' 
-'new Array[ArrayBuffer[$ARGT$]]($LENGTH$)'
+1. `ararb` 
+`new Array[ArrayBuffer[$ARGT$]]($LENGTH$)`

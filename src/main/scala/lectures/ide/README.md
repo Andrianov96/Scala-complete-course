@@ -16,3 +16,10 @@
 1. `ararb` 
 
 `new Array[ArrayBuffer[$ARGT$]]($LENGTH$)`
+
+2. `ararbin`
+
+'for (i<- $NAME$.indices)
+    $NAME$(i) = new ArrayBuffer()'
+    
+ 

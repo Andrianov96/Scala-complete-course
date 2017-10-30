@@ -20,6 +20,7 @@
 2. `ararbin`
 
 `for (i<- $NAME$.indices)
+
     $NAME$(i) = new ArrayBuffer()`
     
  

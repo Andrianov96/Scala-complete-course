@@ -26,3 +26,28 @@ for (i<- $NAME$.indices)
 3. `pp` 
 
 ` += 1`
+
+# Sbt all test
+
+add to build.sbt 
+
+```
+lazy val scalacheck = "org.scalacheck" %% "scalacheck" % "1.13.4"
+libraryDependencies += scalacheck % Test
+```
+
+in sbt write
+`> test`
+
+
+# Intellij idea all test task
+
+1. **Alt + Shift + F10** - выбор конфигурации
+2. **0** - изменение конфигурации
+3. **Alt + Insert** - создать новый шаблон
+4. Выбрать **ScalaTest**
+5. В поле **Name** дать имя конфигурации
+6. В поле **Test kind** выбрать **All in package**
+7. В списке **Search for tests** выбрать **In whole project**
+8. Нажать **OK**
+9. Запустить созданую конфигурацию

@@ -21,33 +21,50 @@ package lectures.oop
   * * * * так можно: PartD { def str = { val newStr = doSomethingWithD("D"); newStr }}
   * * * * содержимое FishermansApp менять нельзя
   **/
-//??? PartD {
-//  ??? str = "D"
-//}
-//
-//??? PartY {
-//  ??? str = "Y"
-//}
-//
-//??? PartCH {
-//  ??? str = "CH"
-//}
-//
-//??? PartK {
-//  ??? str = "K"
-//}
-//
-//??? PartA {
-//  ??? str = "A"
-//}
-//
-//??? PartO extends PartA {
-//  ??? str = "O"
-//}
-//
-//object FishermansApp extends App {
-//  val o = new PartO
-//  println(o.str)
-//}
+trait PartD {
+  print("D")
+  def str = "D"
+}
+
+trait PartY {
+  print("Y")
+  def str = "Y"
+}
+
+trait PartCH extends PartK{
+  override def str = {
+    print("CH")
+    super.str
+    ""
+  }
+}
+
+trait PartK extends PartA{
+  override def str = {
+    print("K")
+    super.str
+    ""
+  }
+}
+
+trait PartA {
+  def str = {
+    print("A")
+    ""
+  }
+}
+
+class PartO extends PartY with PartD with PartCH {
+  override def str = {
+    print("0")
+    super.str
+    ""
+  }
+}
+
+object FishermansApp extends App {
+  val o = new PartO
+  println(o.str)
+}
 
 

@@ -77,7 +77,21 @@ git add fileA.txt && git commit -m 'Commited Bivaliy'
 Тут вы понимаете, что незачем разбивать эту знаменитую троицу на три разных коммита, да и длинная история вам ни к чему. Поэтому надо их всех соединить в один коммит с комментарием `Samogonshiki`. Ваши действия:
 
 ```
-Write your solution here
+git rebase -i HEAD~3
+```
+появятся три строчки вида 
+```
+pick commit# Trus
+pick commit# Balbes
+pick commit# Bivaliy
+```
+
+заменить их на
+
+```
+pick commit# Trus
+squash commit# Balbes
+squash commit# Bivaliy
 ```
 
 ### 5. Финальный босс
@@ -94,5 +108,7 @@ git add .gitignore && git commit -m 'Added gitignore'
 И тут вы понимаете, что сделали большую ошибку, закоммитив в репозиторий файл, который там быть не должен. Как вы можете убрать его из последующих коммитов в репозитории, но оставить в рабочей копии (чтобы git его игнорировал)?
 
 ```
-Write your solution here
+ git rm -r --cached .hidden
 ```
+
+в следующие коммиты он не попадет, так как уже есть в .gitignore

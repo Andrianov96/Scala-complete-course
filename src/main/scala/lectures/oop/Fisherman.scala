@@ -22,13 +22,19 @@ package lectures.oop
   * * * * содержимое FishermansApp менять нельзя
   **/
 trait PartD {
-  print("D")
-  def str = "D"
+  //print("D")
+  val str = {
+    print("D")
+    "D"
+  }
 }
 
 trait PartY {
-  print("Y")
-  def str = "Y"
+  //print("Y")
+  val str = {
+    print("Y")
+    "Y"
+  }
 }
 
 trait PartCH extends PartK{
@@ -55,7 +61,7 @@ trait PartA {
 }
 
 class PartO extends PartY with PartD with PartCH {
-  override def str = {
+  override val str = {
     print("0")
     super.str
     ""

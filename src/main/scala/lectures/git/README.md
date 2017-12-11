@@ -126,6 +126,7 @@ git add .gitignore && git commit -m 'Added gitignore'
 
 ```
  git rm -r --cached .hidden
+ git commit -m 'Remove .hidden'
 ```
 
 в следующие коммиты он не попадет, так как уже есть в .gitignore

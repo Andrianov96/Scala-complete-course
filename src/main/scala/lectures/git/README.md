@@ -31,30 +31,10 @@ git commit -a --amend
 
 Тут вы понимаете, что зря вы все объединили в один коммит и надо бы их все-таки разбить на два коммита. Напишите команды, которые это исправят:
 
-```
-git reset HEAD^
-git reset --soft
-git add -p file.txt
-```
 
-видим что-то в духе
 ```
-+Very important data
-+Second part of important data
-```
-
-Изменяем на 
-```
-+Very important data
-+
-```
-
-сохраняем изменения и выходим из режима изменения
-после этого
-```
-git commit -m 'Very important commit'
-git add file.txt
-git commit -m 'Second part of important data'
+git reset --soft HEAD@{1}
+git commit -m "Second important commit"
 ```
 
 

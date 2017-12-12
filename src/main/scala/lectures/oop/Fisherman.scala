@@ -1,3 +1,4 @@
+
 package lectures.oop
 
 /**
@@ -22,49 +23,31 @@ package lectures.oop
   * * * * содержимое FishermansApp менять нельзя
   **/
 trait PartD {
-  print("D")
   def str = "D"
 }
 
-trait PartY {
-  print("Y")
-  def str = "Y"
+trait PartY extends PartD{
+  override def str = "Y" + super.str
 }
 
 trait PartCH extends PartK{
-  override def str = {
-    print("CH")
-    super.str
-    ""
-  }
+  override def str = "CH" + super.str
 }
 
 trait PartK extends PartA{
-  override def str = {
-    print("K")
-    super.str
-    ""
-  }
+  override def str = "K" + super.str
 }
 
 trait PartA {
-  def str = {
-    print("A")
-    ""
-  }
+  def str = "A"
 }
 
-class PartO extends PartY with PartD with PartCH {
-  override def str = {
-    print("0")
-    super.str
-    ""
-  }
+class PartO extends PartY with PartCH {
+  override def str = super[PartY].str + "O" + super[PartCH].str
 }
 
-object FishermansApp extends App {
+object FishermansApp extends App{
   val o = new PartO
   println(o.str)
 }
-
 

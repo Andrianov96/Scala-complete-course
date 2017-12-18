@@ -9,22 +9,17 @@ lazy val oopSettings = inConfig(oop)(
   ) ++ Defaults.testTasks
 )
 
-//Seq(Tests.Filter(s => s.startsWith("C:\\")))
-//testOptions in Test := Seq(Tests.Filter(s => {
-//  println(s)
-//  s.startsWith("C:\\Users\\g.andrianov\\Documents\\Mygit\\Scala-complete-course\\src\\test\\lectures\\oop")}))
-//
-//lazy val hello = taskKey[Unit]("Prints 'Hello World'")
-//
-//val mySourceGenerator = taskKey[Seq[File]]("My Task")
-//
-//mySourceGenerator in managedSources := "butler.scala"
-//excludeFilter in managedSources := "butler.scala"
-//managedClasspath
+
+
+
 
 lazy val root = (project in file ("."))
     .configs(oop)
     .settings(
+      assemblyJarName in assembly := "scala-course-assembly-1.0.jar",
+      mainClass in assembly := Some("lectures.oop.TreeTest"),
+      test in assembly := {},
+      assemblyOutputPath in assembly := file("target/scala-course-assembly-1.0.jar"),
       oopSettings,
     libraryDependencies ++= Seq("com.typesafe.akka" %% "akka-actor" % "2.5.3",
       "com.typesafe.akka" %% "akka-testkit" % "2.5.3" % Test,

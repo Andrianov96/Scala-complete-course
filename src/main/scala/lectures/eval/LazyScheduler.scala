@@ -1,6 +1,6 @@
 package lectures.eval
 
-import java.time.Clock
+import java.time.{Clock, Instant}
 
 import scala.collection.SeqView
 
@@ -27,7 +27,9 @@ object LazySchedulerView {
       */
     def lazySchedule(expirationTimeout: Long): SeqView[A, Seq[_]]  = {
       val i = c.instant().plusMillis(expirationTimeout)
-      ???
+        f.view.withFilter { a =>
+          c.instant().isBefore(i)
+        }
     }
   }
 }
@@ -37,8 +39,7 @@ object LazySchedulerViewExample extends App {
   import LazySchedulerView._
 
   val v = List(1, 2, 3, 56)
-  val d = v.lazySchedule(1300)
-
+  def d = v.lazySchedule(1300)
   print(d.length)
   Thread.sleep(1500)
   print(d.length)

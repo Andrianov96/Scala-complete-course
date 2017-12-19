@@ -39,7 +39,7 @@ object LazySchedulerViewExample extends App {
   import LazySchedulerView._
 
   val v = List(1, 2, 3, 56)
-  def d = v.lazySchedule(1300)
+  val d = v.lazySchedule(1300)
   print(d.length)
   Thread.sleep(1500)
   print(d.length)

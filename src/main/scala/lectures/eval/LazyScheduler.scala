@@ -2,6 +2,7 @@ package lectures.eval
 
 import java.time.{Clock, Instant}
 
+import scala.collection.IterableView.Coll
 import scala.collection.SeqView
 
 /**
@@ -20,6 +21,20 @@ object LazySchedulerView {
   implicit class SeqViewConverter[A](f: Seq[A]) {
     val c = Clock.systemDefaultZone()
 
+    class ThisIsMySeqViewWay(val endTime: Instant, ff: Seq[A]) extends SeqView[A, Seq[_]] {
+      val seqView = ff.view
+
+      def isBefore(i: Instant):Boolean = c.instant().isBefore(i)
+
+      def iterator: Iterator[A] = if (isBefore(endTime)) seqView.iterator else Iterator.empty
+
+      override def underlying: Seq[A] = if (isBefore(endTime)) ff else Seq[A]()
+
+      def apply(i: Int) = if (isBefore(endTime)) seqView(i) else throw new Error("Now ThisIsMySeqView is empty")
+
+      override def length: Int = if (isBefore(endTime)) seqView.length else 0
+    }
+
     /**
       *
       * @param expirationTimeout - таймаут, после которого view становится пустым, в миллисекундах
@@ -27,9 +42,7 @@ object LazySchedulerView {
       */
     def lazySchedule(expirationTimeout: Long): SeqView[A, Seq[_]]  = {
       val i = c.instant().plusMillis(expirationTimeout)
-        f.view.withFilter { a =>
-          c.instant().isBefore(i)
-        }
+      new ThisIsMySeqViewWay(i, f)
     }
   }
 }

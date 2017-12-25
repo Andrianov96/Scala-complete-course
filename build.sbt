@@ -5,7 +5,7 @@ lazy val oop = config("oop") extend(Test)
 lazy val oopSettings = inConfig(oop)(
   Seq(
     testOptions := Seq(Tests.Filter(name =>
-      name.contains("lectures.oop")))
+      name.equals("lectures.oop")))
   ) ++ Defaults.testTasks
 )
 
@@ -16,10 +16,9 @@ lazy val oopSettings = inConfig(oop)(
 lazy val root = (project in file ("."))
     .configs(oop)
     .settings(
-      assemblyJarName in assembly := "scala-course-assembly-1.0.jar",
       mainClass in assembly := Some("lectures.oop.TreeTest"),
       test in assembly := {},
-      assemblyOutputPath in assembly := file("target/scala-course-assembly-1.0.jar"),
+      assemblyOutputPath in assembly := file("target/Tree-test-assembly.jar"),
       oopSettings,
     libraryDependencies ++= Seq("com.typesafe.akka" %% "akka-actor" % "2.5.3",
       "com.typesafe.akka" %% "akka-testkit" % "2.5.3" % Test,

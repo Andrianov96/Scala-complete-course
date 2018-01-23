@@ -22,44 +22,46 @@ import java.security.MessageDigest
   *
   * Удачи!
   */
+
+
+
+case class File(name: String, body: String, extension: String){
+  def this(file: String) = this(file.trim.takeWhile(_ != '\n'), file.trim.dropWhile( _ != '\n').drop(1), file.trim.takeWhile(_ != '\n').dropWhile(_ != '.').drop(1))
+}
+
 class FatUglyController {
 
-  def processRoute(route: String, requestBody: Option[Array[Byte]]): (Int, String) = {
-    val responseBuf = new StringBuilder()
-    val databaseConnectionId = connectToPostgresDatabase()
-    val mqConnectionId = connectToIbmMq()
-    initializeLocalMailer()
-    if (route == "/api/v1/uploadFile") {
-      if (requestBody.isEmpty) {
-        return (400, "Can not upload empty file")
-      } else if (requestBody.get.length > 8388608) {
-        return (400, "File size should not be more than 8 MB")
-      } else {
-        val stringBody = new String(requestBody.get.filter(_ != '\r'))
-        val delimiter = stringBody.takeWhile(_ != '\n')
-        val files = stringBody.split(delimiter).drop(1)
-        files.foreach { file =>
-          val (name, body) = file.trim.splitAt(file.trim.indexOf('\n'))
-          val trimmedBody = body.trim
-          val extension = name.reverse.takeWhile(_ != '.').reverse
-          val id = hash(file.trim)
-          if (Seq("exe", "bat", "com", "sh").contains(extension)) {
-            return (400, "Request contains forbidden extension")
+  val MaxFileSize = 8388608
+
+  def processRoute(route: String, requestBody: Option[Array[Byte]]): (Int, String) =
+    (route, requestBody) match {
+      case (rout, _) if rout != "/api/v1/uploadFile" => (404, "Route not found")
+      case (_, reqBody) if reqBody.isEmpty => (400, "Can not upload empty file")
+      case (_, reqBody) if reqBody.get.length > MaxFileSize => (400, s"File size should not be more than ${MaxFileSize / (1024 *1024)} MB")
+      case _ => {
+        val responseBuf = new StringBuilder()
+        val databaseConnectionId = connectToPostgresDatabase()
+        val mqConnectionId = connectToIbmMq()
+        initializeLocalMailer()
+        val files = getFiles(requestBody)
+        if (hasBadExtention(files))
+          (400, "Request contains forbidden extension")
+        else {
+          files.foreach { file =>
+            val id = hash(file)
+            // Emulate file saving to disk
+            responseBuf.append(s"- saved file ${file.name} to " + id + "." + file.extension + s" (file size: ${file.body.length})" + "\n")
+
+            executePostgresQuery(databaseConnectionId, s"insert into files (id, name, created_on) values ('$id', '${file.name}', current_timestamp)")
+            sendMessageToIbmMq(mqConnectionId, s"""<Event name="FileUpload"><Origin>SCALA_FTK_TASK</Origin><FileName>${file.name}</FileName></Event>""")
+            send("admin@admin.tinkoff.ru", "File has been uploaded", s"Hey, we have got new file: ${file.name}")
           }
-          // Emulate file saving to disk
-          responseBuf.append(s"- saved file $name to " + id + "." + extension + s" (file size: ${trimmedBody.length})\n")
 
-          executePostgresQuery(databaseConnectionId, s"insert into files (id, name, created_on) values ('$id', '$name', current_timestamp)")
-          sendMessageToIbmMq(mqConnectionId, s"""<Event name="FileUpload"><Origin>SCALA_FTK_TASK</Origin><FileName>${name}</FileName></Event>""")
-          send("admin@admin.tinkoff.ru", "File has been uploaded", s"Hey, we have got new file: $name")
+          (200, "Response:\r\n" + responseBuf.dropRight(1))
         }
-
-        return (200, "Response:\n" + responseBuf.dropRight(1))
       }
-    } else {
-      return (404, "Route not found")
     }
-  }
+
 
   def connectToPostgresDatabase(): Int = {
     // DO NOT TOUCH
@@ -95,18 +97,22 @@ class FatUglyController {
     println(s"Sent email to $email with subject '$subject'")
   }
 
-  def hash(s: String): String = {
+  def hash(file: File): String = {
+    val s = file.name + '\n' + file.body
     MessageDigest.getInstance("SHA-1").digest(s.getBytes("UTF-8")).map("%02x".format(_)).mkString
   }
 
-  def badExtentionCheck(file: String): Boolean = {
-    val trimmedFile = file.trim
-    val name = trimmedFile.takeWhile(_ != '\n')
-    val extension = name.dropWhile(_ != '.').drop(1)
-    Seq("exe", "bat", "com", "sh").contains(extension)
+  def badExtentionCheck(file: File): Boolean = {
+    Seq("exe", "bat", "com", "sh").contains(file.extension)
   }
 
-  def hasBadExtention(files: Array[String]): Boolean = {
-    files.foldLeft(false)((acc, str) => acc || badExtentionCheck(str))
+  def hasBadExtention(files: Array[File]): Boolean = {
+    files.foldLeft(false)((acc, file) => acc || badExtentionCheck(file))
+  }
+
+  def getFiles(requestBody: Option[Array[Byte]]): Array[File] = {
+    val stringBody = new String(requestBody.get.filter(_ != '\r'))
+    val delimiter = stringBody.takeWhile(_ != '\n')
+    stringBody.split(delimiter).drop(1).map(new File(_))
   }
 }

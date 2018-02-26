@@ -5,7 +5,7 @@ lazy val oop = config("oop") extend(Test)
 lazy val oopSettings = inConfig(oop)(
   Seq(
     testOptions := Seq(Tests.Filter(name =>
-      name.equals("lectures.oop")))
+      name.startsWith("lectures.oop")))
   ) ++ Defaults.testTasks
 )
 
@@ -18,7 +18,7 @@ lazy val root = (project in file ("."))
     .settings(
       mainClass in assembly := Some("lectures.oop.TreeTest"),
       test in assembly := {},
-      assemblyOutputPath in assembly := file("target/Tree-test-assembly.jar"),
+      assemblyOutputPath in assembly := file(s"target/scala-course-assembly-${version.value}.jar"),
       oopSettings,
     libraryDependencies ++= Seq("com.typesafe.akka" %% "akka-actor" % "2.5.3",
       "com.typesafe.akka" %% "akka-testkit" % "2.5.3" % Test,
@@ -29,7 +29,16 @@ lazy val root = (project in file ("."))
       "org.xerial" % "sqlite-jdbc" % "3.7.2",
       "org.scalatest" %% "scalatest" % "3.0.1" % "test",
       "org.mockito" % "mockito-core" % "1.9.5" % "test",
-      "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
+      "org.scalacheck" %% "scalacheck" % "1.13.4" % "test",
+      "com.typesafe.akka" %% "akka-actor" % "2.5.3",
+      "com.typesafe.akka" %% "akka-testkit" % "2.5.3" % Test,
+      "com.typesafe.akka" %% "akka-remote" % "2.5.3",
+      "com.typesafe.akka" %% "akka-slf4j" % "2.5.3",
+      "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided",
+      "com.softwaremill.macwire" %% "macrosakka" % "2.3.0" % "provided",
+      "com.softwaremill.macwire" %% "util" % "2.3.0",
+      "com.softwaremill.macwire" %% "proxy" % "2.3.0",
+      "com.storm-enroute" %% "scalameter" % "0.9"
     ),
     resolvers ++= Seq(
       Resolver.jcenterRepo,

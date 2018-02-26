@@ -26,11 +26,11 @@ object LazySchedulerView {
 
       def isBefore(i: Instant):Boolean = c.instant().isBefore(i)
 
-      def iterator: Iterator[A] = if (isBefore(endTime)) seqView.iterator else Iterator.empty
+      override def iterator: Iterator[A] = if (isBefore(endTime)) seqView.iterator else Iterator.empty
 
       override def underlying: Seq[A] = if (isBefore(endTime)) ff else Seq[A]()
 
-      def apply(i: Int) = if (isBefore(endTime)) seqView(i) else throw new Error("Now ThisIsMySeqView is empty")
+      override def apply(i: Int): A = if (isBefore(endTime)) seqView(i) else throw new Exception("Now ThisIsMySeqView is empty")
 
       override def length: Int = if (isBefore(endTime)) seqView.length else 0
     }

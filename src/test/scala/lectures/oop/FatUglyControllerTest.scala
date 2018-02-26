@@ -90,4 +90,5 @@ class FatUglyControllerTest extends FlatSpec with Matchers {
 
   private val controller = new FatUglyController()
 
+
 }

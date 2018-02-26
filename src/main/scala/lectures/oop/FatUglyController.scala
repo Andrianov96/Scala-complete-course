@@ -9,9 +9,9 @@ import java.security.MessageDigest
   *
   * Вам необходимо:
   * - отрефакторить данный класс, выделив уровни ответственности, необходимые
-  *   интерфейсы и абстракции
+  * интерфейсы и абстракции
   * - дописать тесты в FatUglyControllerTest и реализовать в них проверку на
-  *   сохранение в БД, отправку сообщения в очередь и отправку email-а
+  * сохранение в БД, отправку сообщения в очередь и отправку email-а
   * - исправить очевидные костыли в коде
   *
   * Код внутри методов, помеченный как DO NOT TOUCH, трогать нельзя (сами методы
@@ -24,39 +24,50 @@ import java.security.MessageDigest
   */
 
 
-
-case class File(name: String, body: String, extension: String){
-  def this(file: String) = this(file.trim.takeWhile(_ != '\n'), file.trim.dropWhile( _ != '\n').drop(1), file.trim.takeWhile(_ != '\n').dropWhile(_ != '.').drop(1))
-}
-
 class FatUglyController(val MaxFileByteSize: Int = 8388608) {
 
   def processRoute(route: String, requestBody: Option[Array[Byte]]): (Int, String) =
-    (route, requestBody) match {
-      case (rout, _) if rout != "/api/v1/uploadFile" => (404, "Route not found")
-      case (_, reqBody) if reqBody.isEmpty => (400, "Can not upload empty file")
-      case (_, reqBody) if reqBody.get.length > MaxFileByteSize => (400, s"File size should not be more than ${MaxFileByteSize / (1024 *1024)} MB")
-      case _ => {
-        val files = getFiles(requestBody)
-        if (hasBadExtention(files))
-          (400, "Request contains forbidden extension")
-        else {
-          val responseBuf = new StringBuilder()
-          initializeLocalMailer()
-          files.foreach { file =>
-            val id = hash(file)
-            // Emulate file saving to disk
-            responseBuf.append(s"- saved file ${file.name} to $id.${file.extension} (file size: ${file.body.length})\n")
-
-            writeFileToDB(id, file.name)
-            sendMsgToIbmMq(file.name)
-            emailToAdminAboutNewFile(file.name)
-          }
-          (200, "Response:\n" + responseBuf.dropRight(1))
-        }
-      }
+    route match {
+      case ("/api/v1/uploadFile") => goodWayHandler(requestBody)
+      case _ => badWayHandler()
     }
 
+  case class File(name: String, body: String, extension: String)
+
+  case class UploadFileResponse(code: Int, msg: String)
+
+  def badWayHandler(): (Int, String) = (404, "Route not found")
+
+  def goodWayHandler(requestBody: Option[Array[Byte]]): (Int, String) =
+    requestBody match {
+      case None => emptyFileHandler()
+      case Some(body) if body.length > MaxFileByteSize => bigFileHandler()
+      case _ => remainigHandler(requestBody)
+    }
+
+  def emptyFileHandler(): (Int, String) = (400, "Can not upload empty file")
+
+  def bigFileHandler(): (Int, String) = (400, s"File size should not be more than ${MaxFileByteSize / (1024 * 1024)} MB")
+
+  def remainigHandler(requestBody: Option[Array[Byte]]): (Int, String) = {
+    val files = getFiles(requestBody)
+    if (hasBadExtention(files))
+      (400, "Request contains forbidden extension")
+    else {
+      val responseBuf = new StringBuilder()
+      initializeLocalMailer()
+      files.foreach { file =>
+        val id = hash(file)
+        // Emulate file saving to disk
+        responseBuf.append(s"- saved file ${file.name} to $id.${file.extension} (file size: ${file.body.length})\n")
+
+        writeFileToDB(id, file.name)
+        sendMsgToIbmMq(file.name)
+        emailToAdminAboutNewFile(file.name)
+      }
+      (200, "Response:\n" + responseBuf.dropRight(1))
+    }
+  }
 
   def connectToPostgresDatabase(): Int = {
     // DO NOT TOUCH
@@ -82,7 +93,7 @@ class FatUglyController(val MaxFileByteSize: Int = 8388608) {
   }
 
 
-  def sendMsgToIbmMq(fileName:String): String = {
+  def sendMsgToIbmMq(fileName: String): String = {
     val connectionId = connectToIbmMq()
     sendMessageToIbmMq(connectionId, s"""<Event name="FileUpload"><Origin>SCALA_FTK_TASK</Origin><FileName>${fileName}</FileName></Event>""")
   }
@@ -122,9 +133,16 @@ class FatUglyController(val MaxFileByteSize: Int = 8388608) {
     files.foldLeft(false)((acc, file) => acc || badExtentionCheck(file))
   }
 
+  def getFileFromString(file: String): File = {
+    val name = file.trim.takeWhile(_ != '\n')
+    val body = file.trim.dropWhile(_ != '\n').drop(1)
+    val extension = file.trim.takeWhile(_ != '\n').dropWhile(_ != '.').drop(1)
+    File(name, body, extension)
+  }
+
   def getFiles(requestBody: Option[Array[Byte]]): Array[File] = {
     val stringBody = new String(requestBody.get.filter(_ != '\r'))
     val delimiter = stringBody.takeWhile(_ != '\n')
-    stringBody.split(delimiter).drop(1).map(new File(_))
+    stringBody.split(delimiter).drop(1).map(getFileFromString)
   }
 }

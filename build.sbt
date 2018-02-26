@@ -10,9 +10,6 @@ lazy val oopSettings = inConfig(oop)(
 )
 
 
-
-
-
 lazy val root = (project in file ("."))
     .configs(oop)
     .settings(

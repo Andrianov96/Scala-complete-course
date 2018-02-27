@@ -29,8 +29,8 @@ class WebCrawler(numberOfThreads: Int) {
   private val InitialPage = "https://en.wikipedia.org/wiki/Main_Page"
   private val URLFirstPart = "https://en.wikipedia.org/wiki/"
   private val Word = """\b+([А-Яа-яЁё]+)\b+""".r
-  private val wastedURLs = new CopyOnWriteArraySet[URL]()
-  private val pagesList = new CopyOnWriteArrayList[URL]()
+  private val wastedURLs = new CopyOnWriteArraySet[String]()
+  private val pagesList = new CopyOnWriteArrayList[String]()
   var totalWords = new AtomicLong(0)
   private val visitedPages = new AtomicInteger(WebPagesLimit)
 
@@ -46,9 +46,8 @@ class WebCrawler(numberOfThreads: Int) {
       crawlOnePage(url)
     }
 
-    def crawlOnePage(url: URL): Unit = {
-      wastedURLs.add(url)
-      val link: String = url.toString
+    def crawlOnePage(link: String): Unit = {
+      wastedURLs.add(link)
       val response = Jsoup.connect(link).ignoreContentType(true)
         .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1").execute()
 
@@ -63,7 +62,7 @@ class WebCrawler(numberOfThreads: Int) {
             .asScala
             .map(e => e.attr("href"))
             .filter(s => s.startsWith("/wiki/"))
-            .map(s => URLFirstPart + s.drop(6)).map(link => new URL(link))
+            .map(s => URLFirstPart + s.drop(6))
             .filterNot(link => wastedURLs.contains(link))
             .toList
           pagesList.addAll(links.asJava)
@@ -72,7 +71,7 @@ class WebCrawler(numberOfThreads: Int) {
       visitedPages.getAndDecrement()
     }
 
-    pagesList.add(new URL(InitialPage))
+    pagesList.add(InitialPage)
     val executor = Executors.newFixedThreadPool(numberOfThreads)
 
     def getTasks: Seq[Runnable] =

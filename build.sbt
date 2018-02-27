@@ -40,7 +40,8 @@ libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
 libraryDependencies ++= Seq("com.typesafe.akka" %% "akka-actor" % "2.5.3",
   "com.typesafe.akka" %% "akka-testkit" % "2.5.3" % Test,
   "com.typesafe.akka" %% "akka-remote" % "2.5.3",
-  "com.typesafe.akka" %% "akka-slf4j" % "2.5.3"
+  "com.typesafe.akka" %% "akka-slf4j" % "2.5.3",
+  "org.jsoup"         % "jsoup"                                 % "1.8+"
 )
 
 libraryDependencies += "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided"

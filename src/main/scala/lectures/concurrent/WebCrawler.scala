@@ -33,20 +33,44 @@ class WebCrawler(numberOfThreads: Int) {
   private val pagesList = new CopyOnWriteArrayList[URL]()
   var totalWords = new AtomicLong(0)
   private val visitedPages = new AtomicInteger(WebPagesLimit)
-  private val workHasStarted = new AtomicInteger(0)
-
-
-  def oneThreadJob(): Unit = {
-    val lock = new ReentrantLock()
-    lock.lock()
-    val url = pagesList.get(0)
-    pagesList.remove(0)
-    lock.unlock()
-    crawlOnePage(url)
-  }
 
   def crawl(): Long = {
     // Start your implementation from here
+
+    def oneThreadJob(): Unit = {
+      val lock = new ReentrantLock()
+      lock.lock()
+      val url = pagesList.get(0)
+      pagesList.remove(0)
+      lock.unlock()
+      crawlOnePage(url)
+    }
+
+    def crawlOnePage(url: URL): Unit = {
+      wastedURLs.add(url)
+      val link: String = url.toString
+      val response = Jsoup.connect(link).ignoreContentType(true)
+        .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1").execute()
+
+      val contentType: String = response.contentType
+      if (contentType.startsWith("text/html")) {
+        val doc = response.parse()
+        val page = doc.toString
+        val onThisPage = countWords(page)
+        totalWords.getAndAdd(onThisPage)
+        if (pagesList.size() < 1000) {
+          val links = doc.getElementsByTag("a")
+            .asScala
+            .map(e => e.attr("href"))
+            .filter(s => s.startsWith("/wiki/"))
+            .map(s => URLFirstPart + s.drop(6)).map(link => new URL(link))
+            .filterNot(link => wastedURLs.contains(link))
+            .toList
+          pagesList.addAll(links.asJava)
+        }
+      }
+      visitedPages.getAndDecrement()
+    }
 
     pagesList.add(new URL(InitialPage))
     val executor = Executors.newFixedThreadPool(numberOfThreads)
@@ -56,13 +80,6 @@ class WebCrawler(numberOfThreads: Int) {
       new Runnable {
         override def run(): Unit = {
           while (pagesList.size() == 0){
-            while (workHasStarted.get() == 0){
-              if (workHasStarted.compareAndSet(0, 1)){
-                oneThreadJob()
-              } else {
-                Thread.sleep(10)
-              }
-            }
             Thread.sleep(11)
           }
           oneThreadJob()
@@ -84,32 +101,6 @@ class WebCrawler(numberOfThreads: Int) {
     Word.findAllIn(page).size
   }
 
-  def crawlOnePage(url: URL): Unit = {
-    wastedURLs.add(url)
-
-    val link: String = url.toString
-    val response = Jsoup.connect(link).ignoreContentType(true)
-      .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1").execute()
-
-    val contentType: String = response.contentType
-    if (contentType.startsWith("text/html")) {
-      val doc = response.parse()
-      val page = doc.toString
-      val onThisPage = countWords(page)
-      totalWords.getAndAdd(onThisPage)
-      if (pagesList.size() < 1000) {
-        val links = doc.getElementsByTag("a")
-          .asScala
-          .map(e => e.attr("href"))
-          .filter(s => s.startsWith("/wiki/"))
-          .map(s => URLFirstPart + s.drop(6)).map(link => new URL(link))
-          .filterNot(link => wastedURLs.contains(link))
-          .toList
-        pagesList.addAll(links.asJava)
-      }
-    }
-    visitedPages.getAndDecrement()
-  }
 }
 
 object WebCrawler extends App {

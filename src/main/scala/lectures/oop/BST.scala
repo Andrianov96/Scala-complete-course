@@ -81,26 +81,12 @@ case class BSTImpl(value: Int,
   def toStr (): Array[String] = {
     (left, right) match {
       case (None, None) => Array[String](value.toString)
-      case (Some(leftT), Some(rightT)) => {
+      case _ => {
         val leftAr = left.map{ _.toStr()}.getOrElse(Array[String](""))
         val rightAr = right.map{ _.toStr()}.getOrElse(Array[String](""))
         val valueStr = value.toString
         val leafsAr = addSpaces(leftAr, rightAr, valueStr.length)
         val firstStr = " " * leftAr(0).length + additionSpaces + valueStr + additionSpaces + " " * rightAr(0).length
-        Array[String](firstStr)  ++ leafsAr
-      }
-      case (Some(leftT), None) => {
-        val leftAr = leftT.toStr()
-        val valueStr = value.toString
-        val leafsAr = addSpaces(leftAr, Array[String](""), valueStr.length)
-        val firstStr = " " * leftAr(0).length + additionSpaces + valueStr + additionSpaces
-        Array[String](firstStr)  ++ leafsAr
-      }
-      case (None, Some(rightT)) => {
-        val rightAr = rightT.toStr()
-        val valueStr = value.toString
-        val leafsAr = addSpaces(Array[String](""), rightAr, valueStr.length)
-        val firstStr = additionSpaces + valueStr + additionSpaces + " " * rightAr(0).length
         Array[String](firstStr)  ++ leafsAr
       }
     }
@@ -119,33 +105,31 @@ case class BSTImpl(value: Int,
 
 object TreeTest extends App {
 
-//  def generator(nodesCount: Int):BST = {
-//    var res:BST = new BSTImpl((Math.random() * maxValue).toInt)
-//    for (i<- 2 to nodesCount)
-//      res = res.add((Math.random() * maxValue).toInt)
-//    res
-//  }
-//  val sc = new java.util.Scanner(System.in)
-//  val maxValue = 110000
-//  val nodesCount = sc.nextInt()
-//
-//  val markerItem = (Math.random() * maxValue).toInt
-//  val markerItem2 = (Math.random() * maxValue).toInt
-//  val markerItem3 = (Math.random() * maxValue).toInt
-//
-//  // Generate huge tree
-//  val root: BST = BSTImpl(maxValue / 2)
-//  val tree: BST = generator(nodesCount) // generator goes here
-//
-//  // add marker items
-//  val testTree = tree.add(markerItem).add(markerItem2).add(markerItem3)
-//
-//  // check that search is correct
-//  require(testTree.find(markerItem).isDefined)
-//  require(testTree.find(markerItem).isDefined)
-//  require(testTree.find(markerItem).isDefined)
+  def generator(nodesCount: Int):BST = {
+    var res:BST = new BSTImpl((Math.random() * maxValue).toInt)
+    for (i<- 2 to nodesCount)
+      res = res.add((Math.random() * maxValue).toInt)
+    res
+  }
+  val sc = new java.util.Scanner(System.in)
+  val maxValue = 110000
+  val nodesCount = sc.nextInt()
 
-  val myTestTree = new BSTImpl(10)
-  val test = myTestTree.add(9).add(15).add(6).add(8).add(7).add(3).add(4).add(5).add(2).add(1).add(13).add(18).add(11).add(12).add(16)
-  println(test.toString)
+  val markerItem = (Math.random() * maxValue).toInt
+  val markerItem2 = (Math.random() * maxValue).toInt
+  val markerItem3 = (Math.random() * maxValue).toInt
+
+  // Generate huge tree
+  val root: BST = BSTImpl(maxValue / 2)
+  val tree: BST = generator(nodesCount) // generator goes here
+
+  // add marker items
+  val testTree = tree.add(markerItem).add(markerItem2).add(markerItem3)
+
+  // check that search is correct
+  require(testTree.find(markerItem).isDefined)
+  require(testTree.find(markerItem).isDefined)
+  require(testTree.find(markerItem).isDefined)
+  
+  println(testTree.toString)
 }

@@ -3,9 +3,9 @@ package lectures.concurrent
 import java.net.URL
 import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
 import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.{CopyOnWriteArrayList, _}
 
 import org.jsoup.Jsoup
-import java.util.concurrent.{CopyOnWriteArrayList, _}
 
 import scala.collection.JavaConverters._
 
@@ -31,14 +31,13 @@ class WebCrawler(numberOfThreads: Int) {
   private val Word = """\b+([А-Яа-яЁё]+)\b+""".r
   private val wastedURLs = new CopyOnWriteArraySet[String]()
   private val pagesList = new CopyOnWriteArrayList[String]()
-  var totalWords = new AtomicLong(0)
-  private val visitedPages = new AtomicInteger(WebPagesLimit)
+  val totalWords = new AtomicLong(0)
+  private val unVisitedPages = new AtomicInteger(WebPagesLimit)
 
   def crawl(): Long = {
     // Start your implementation from here
-
+    val lock = new ReentrantLock()
     def oneThreadJob(): Unit = {
-      val lock = new ReentrantLock()
       lock.lock()
       val url = pagesList.get(0)
       pagesList.remove(0)
@@ -68,7 +67,7 @@ class WebCrawler(numberOfThreads: Int) {
           pagesList.addAll(links.asJava)
         }
       }
-      visitedPages.getAndDecrement()
+      unVisitedPages.getAndDecrement()
     }
 
     pagesList.add(InitialPage)
@@ -89,7 +88,7 @@ class WebCrawler(numberOfThreads: Int) {
     getTasks.foreach(executor.submit)
     executor.shutdown()
     while (!executor.isTerminated) {
-      println(s"- progress: ${visitedPages.get()}")
+      println(s"- progress: ${unVisitedPages.get()}")
       Thread.sleep(1000)
     }
 

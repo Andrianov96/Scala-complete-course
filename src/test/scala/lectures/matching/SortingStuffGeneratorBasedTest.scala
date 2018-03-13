@@ -6,6 +6,7 @@ import org.scalactic.anyvals.PosInt
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{Matchers, WordSpec}
 
+
 import scala.util.Random
 
 
@@ -89,7 +90,19 @@ class SortingStuffGeneratorBasedTest extends WordSpec with Matchers with Propert
 
     "find knife" which {
       "was occasionally disposed" in {
+        val ms = generatorDrivenConfig.minSuccessful
+        val books = (1 to ms) flatMap { _ => interestingBookGen.sample }
+        val watches = (1 to ms) flatMap { _ => cheepWatchGen.sample }
+        var knifeOpt:Option[Knife.type ] = None
+        for (knife <- knifeGenerator) yield {
+          knifeOpt = knife
+        }
 
+        val knifeOrBook = knifeOpt.getOrElse(books.head)
+
+        val st = StuffBox(Nil, Nil, Nil, (books ++ watches ++ List(knifeOrBook)).toList)
+
+        SortingStuff.findMyKnife(st) shouldBe knifeOpt.nonEmpty
       }
     }
 

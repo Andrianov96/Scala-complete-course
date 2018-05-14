@@ -26,7 +26,7 @@ import scala.util.Random
   *
   * Что-либо еще, кроме знаков ???, заменять нельзя
   */
-object Authentication  {
+object Authentication extends App {
 
   import AuthenticationData._
 

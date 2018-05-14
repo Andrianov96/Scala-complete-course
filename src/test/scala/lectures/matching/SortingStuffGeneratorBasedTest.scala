@@ -38,17 +38,6 @@ class SortingStuffGeneratorBasedTest extends WordSpec with Matchers with Propert
   val interestingBookGen: Gen[Book] = bookGenerator.filter(_.isInteresting)
   val knifeGenerator = Gen.option(Knife)
   val bootsGenerator:Gen[Boots] = Gen.zip(Gen.alphaStr, Gen.choose(0, 1000)).map(b => Boots(b._1, b._2))
-//  val stuffGenerator = Gen.sized { size =>
-//    for {
-//      watchesList <- Gen.listOfN(size / 2, cheepWatchGen)
-//      booksList <- Gen.listOfN(size / 2, bookGenerator)
-//      knife <- knifeGenerator
-//      book <- bookGenerator
-//    } yield (knife, watchesList ++ booksList ++ List(knife.getOrElse(book)))
-//  }
-//  val stuffBoxGenerator = for {
-//    (knifeFlag, stuff) <- stuffGenerator
-//  } yield (knifeFlag, StuffBox(Nil, Nil, Nil, stuff))
 
   // Override configuration if you need
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration =
@@ -74,7 +63,7 @@ class SortingStuffGeneratorBasedTest extends WordSpec with Matchers with Propert
 
   "Sort stuff" should {
     "return collections" which {
-      "total size is equal to item amount" in pendingUntilFixed{
+      "total size is equal to item amount" in {
         val ms = generatorDrivenConfig.minSuccessful
 
         val books = (1 to ms) flatMap { _ => interestingBookGen.sample }

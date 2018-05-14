@@ -36,7 +36,8 @@ lazy val root = (project in file ("."))
       "com.softwaremill.macwire" %% "util" % "2.3.0",
       "com.softwaremill.macwire" %% "proxy" % "2.3.0",
       "com.storm-enroute" %% "scalameter" % "0.9",
-      "org.jsoup"         % "jsoup"                                 % "1.8+"
+      "org.jsoup"  % "jsoup" % "1.8+",
+      "org.typelevel" %% "cats-core" % "1.0.0-MF"
     ),
     resolvers ++= Seq(
       Resolver.jcenterRepo,

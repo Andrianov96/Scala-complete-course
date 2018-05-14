@@ -29,7 +29,7 @@ class WebCrawler(numberOfThreads: Int) {
   private val InitialPage = "https://en.wikipedia.org/wiki/Main_Page"
   private val URLFirstPart = "https://en.wikipedia.org/wiki/"
   private val Word = """\b+([А-Яа-яЁё]+)\b+""".r
-  private val wastedURLs = new CopyOnWriteArraySet[String]()
+  private val watchedURLs = new ConcurrentHashMap[String, Long]()
   private val pagesList = new CopyOnWriteArrayList[String]()
   val totalWords = new AtomicLong(0)
   private val unVisitedPages = new AtomicInteger(WebPagesLimit)
@@ -38,15 +38,29 @@ class WebCrawler(numberOfThreads: Int) {
     // Start your implementation from here
     val lock = new ReentrantLock()
     def oneThreadJob(): Unit = {
-      lock.lock()
-      val url = pagesList.get(0)
-      pagesList.remove(0)
-      lock.unlock()
+      val url = getUrlFromList()
       crawlOnePage(url)
     }
 
+    def getUrlFromList(): String = {
+      var url = ""
+      if (pagesList.size() != 0) {
+        lock.lock()
+        if (pagesList.size() != 0 ) {
+          url = pagesList.get(0)
+          pagesList.remove(0)
+        }
+        lock.unlock()
+      } else {
+        Thread.sleep(12)
+      }
+      if (url == "") getUrlFromList() else url
+    }
+
     def crawlOnePage(link: String): Unit = {
-      wastedURLs.add(link)
+      if (watchedURLs.putIfAbsent(link, 0).eq(null)) {
+        throw new Exception("watch url second time")
+      }
       val response = Jsoup.connect(link).ignoreContentType(true)
         .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1").execute()
 
@@ -62,7 +76,7 @@ class WebCrawler(numberOfThreads: Int) {
             .map(e => e.attr("href"))
             .filter(s => s.startsWith("/wiki/"))
             .map(s => URLFirstPart + s.drop(6))
-            .filterNot(link => wastedURLs.contains(link))
+            .filterNot(link => watchedURLs.contains(link))
             .toList
           pagesList.addAll(links.asJava)
         }
@@ -77,9 +91,6 @@ class WebCrawler(numberOfThreads: Int) {
     (1 to WebPagesLimit).map { _ =>
       new Runnable {
         override def run(): Unit = {
-          while (pagesList.size() == 0){
-            Thread.sleep(11)
-          }
           oneThreadJob()
         }
       }

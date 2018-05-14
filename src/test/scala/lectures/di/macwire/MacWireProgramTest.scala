@@ -6,6 +6,7 @@ import lectures.functions.{LPUser, User}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 
 import scala.collection.mutable
+import lectures.di.UserServiceTestSuite._
 
 class MacWireProgramTestDependencies(override val connection: Connection) extends MacWireProgramDependency(connection) {
   override val configurationMap = mutable.Map.empty
@@ -15,7 +16,9 @@ class MacWireProgramTest extends WordSpec with BeforeAndAfterAll with Matchers {
 
   Class.forName("org.sqlite.JDBC")
   private val connection = DriverManager.getConnection("jdbc:sqlite:memory")
-  connection.setAutoCommit(false)
+  val deps = new MacWireProgramTestDependencies(connection)
+
+  //connection.setAutoCommit(false)
 
   override def afterAll(): Unit = {
     connection.close()

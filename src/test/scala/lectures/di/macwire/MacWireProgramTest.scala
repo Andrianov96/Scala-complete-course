@@ -8,32 +8,30 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 import scala.collection.mutable
 import lectures.di.UserServiceTestSuite._
 
-class MacWireProgramTestDependencies(override val connection: Connection) extends MacWireProgramDependency(connection) {
+class MacWireProgramTestDependencies() extends MacWireProgramDependency() {
   override val configurationMap = mutable.Map.empty
 }
 
 class MacWireProgramTest extends WordSpec with BeforeAndAfterAll with Matchers {
 
   Class.forName("org.sqlite.JDBC")
-  private val connection = DriverManager.getConnection("jdbc:sqlite:memory")
-  val deps = new MacWireProgramTestDependencies(connection)
+  val deps = new MacWireProgramTestDependencies()
 
   //connection.setAutoCommit(false)
 
   override def afterAll(): Unit = {
-    connection.close()
   }
 
   "Reader program" should {
     "should not find any user" in {
-      val deps = new MacWireProgramTestDependencies(connection)
+      val deps = new MacWireProgramTestDependencies()
       val r = new MacWireProgram(deps)
       val res: Option[User] = r.run
       res shouldBe None
     }
 
     "find correct user" in {
-      val deps = new MacWireProgramDependency(connection)
+      val deps = new MacWireProgramDependency()
       val r = new MacWireProgram(deps)
       val Some(user: LPUser) = r.run
       user.credentials.login shouldBe "Frosya"

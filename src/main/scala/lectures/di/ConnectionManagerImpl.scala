@@ -14,6 +14,7 @@ import java.sql.{Connection, DriverManager}
   */
 class ConnectionManagerImpl(configuration: Configuration) extends ConnectionManager{
   override def connection: Connection = {
+    Class.forName("org.sqlite.JDBC")
     val con = DriverManager.getConnection(configuration.attribute("connectionUri").getOrElse("jdbc:sqlite:memory"))
     con.setAutoCommit(false)
     con

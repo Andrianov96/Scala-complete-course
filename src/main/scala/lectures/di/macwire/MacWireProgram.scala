@@ -7,10 +7,10 @@ import lectures.functions.{AnonymousUser, User}
 
 import scala.collection.mutable
 
-class MacWireProgramDependency(val connection: Connection) {
+class MacWireProgramDependency() {
   import com.softwaremill.macwire._
 
-  val configurationMap: mutable.Map[String, String] = mutable.Map("user" -> "Frosya", "password" -> "qwerty3", "connectionUri" -> connection.getMetaData.getURL)
+  val configurationMap: mutable.Map[String, String] = mutable.Map("user" -> "Frosya", "password" -> "qwerty3", "connectionUri" -> "jdbc:sqlite:memory")
   lazy val configuration = wire[ConfigurationImpl]
   lazy val connectionManager = wire[ConnectionManagerImpl]
   lazy val userService = wire[UserServiceImpl]

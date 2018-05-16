@@ -26,7 +26,8 @@ class UserServiceImpl(connectionManager: ConnectionManager) extends UserService 
       val rs = stmt.executeQuery()
       Some(LPUser(rs.getInt(3), LPCredentials(rs.getString(1), rs.getString(2))))
     } catch {
-      case _: Exception => None
+      case _: Exception => println("RRRRRRRRRRRRRRRRRRRRRRRRRR")
+        None
     } finally {
       connection.commit()
       connectionManager.close(connection)

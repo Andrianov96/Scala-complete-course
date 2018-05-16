@@ -1,5 +1,7 @@
 package lectures.collections
 
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+
 /**
   * Представим, что по какой-то причине Вам понадобилась своя обертка над списком целых чисел List[Int]
   *
@@ -17,34 +19,42 @@ package lectures.collections
   */
 object MyListImpl extends App {
 
-  case class MyList(data: List[Int]) {
+  class MyList[T, S <: Seq[T]](val data: S) {
 
-    def flatMap(f: (Int => MyList)) =
-      MyList(data.flatMap(inp => f(inp).data))
-//
-    def map(f: (Int => Int)):MyList = {
-      this.flatMap((a:Int) => MyList(List(f(a))))
+    def flatMap[T1, S1 <: Seq[T1]] (f: (T => MyList[T1, S1])): MyList[T1, Seq[T1]] =
+      new MyList(data.flatMap(elem => f(elem).data))
+
+    def map[T1](f: (T => T1)) = {
+      flatMap{
+        elem =>
+          new MyList[T1,Seq[T1]](Seq(f(elem)))
+      }
     }
 
-//
-    def foldLeft(acc: Int)(f: (Int, Int) => Int): Int = this.data match {
-      case List() => acc
-      case head :: tail =>  foldLeft(f(acc, head))(f)
+    def foldLeft(acc: T)(f: (T, T) => T): T = this.data match {
+      case d if d.isEmpty => acc
+      case d => new MyList[T, Seq[T]](d.tail).foldLeft(f(acc, d.head))(f)
     }
-//
-    def filter(f: (Int) => Boolean) = {
-      def fun: (Int => MyList) = {
-        (a: Int) => if(f(a)) MyList(List(a)) else MyList(List())
+
+    def filter(f: T => Boolean): MyList[T, Seq[T]] = {
+      def fun: (T => MyList[T,Seq[T]]) = {
+        (a: T) => if(f(a)) new MyList(Seq(a)) else new MyList(Seq())
       }
       this.flatMap(fun)
     }
-
   }
 
+  case class MyListBuffer[T](listBufferData: ListBuffer[T]) extends MyList[T, ListBuffer[T]](listBufferData)
 
-//  require(MyList(List(1, 2, 3, 4, 5, 6)).map(_ * 2).data == List(2, 4, 6, 8, 10, 12))
-//  require(MyList(List(1, 2, 3, 4, 5, 6)).filter(_ % 2 == 0).data == List(2, 4, 6))
-//  require(MyList(List(1, 2, 3, 4, 5, 6)).foldLeft(0)((tpl) => tpl._1 + tpl._2) == 21)
-//  require(MyList(Nil).foldLeft(0)((tpl) => tpl._1 + tpl._2) == 0)
+  case class MyIndexedList[T](indexedListData: IndexedSeq[T]) extends MyList[T, IndexedSeq[T]](indexedListData)
+
+  require(new MyList[Int, List[Int]](List(1, 2, 3, 4, 5, 6)).map(p => p * 2).data == List(2, 4, 6, 8, 10, 12))
+  require(new MyList[Long, ListBuffer[Long]](ListBuffer(1, 2, 3, 4, 5, 6)).filter(_ % 2 == 0).data == List(2, 4, 6)) // Почему ListBuffer перешел в  List ??
+  require(new MyList[Int, List[Int]](List(1, 2, 3, 4, 5, 6)).foldLeft(0)((acc, elem)=> acc + elem) == 21)
+  require(new MyList[Float, IndexedSeq[Float]](ArrayBuffer.empty[Float]).foldLeft(0)((acc, elem)=> acc + elem) == 0)
+
+  require(MyIndexedList[Float](ArrayBuffer.empty[Float]).foldLeft(0)((acc, elem) => acc + elem) == 0)
+  require(MyListBuffer[Long](ListBuffer(1, 2, 3, 4, 5, 6)).filter(_ % 2 == 0).data == List(2, 4, 6))
+
 
 }

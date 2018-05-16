@@ -4,7 +4,7 @@ import lectures.functions.SQLAPI
 
 /**
   * У вас есть приложение, которое можно запустить в тестовом или продуктовом окружении.
-  * В зависимости от окружения ваше приложение создает БД с тестовым или бовым адресом
+  * В зависимости от окружения ваше приложение создает БД с тестовым или боевым адресом
   * и использует подходящую реализацию сервиса.
   *
   * Ваша задача: реализовать методы doSomeService в тестовом и боевом сервисах. Для этого:
@@ -23,21 +23,23 @@ trait UsefulService {
 }
 
 trait TestServiceImpl extends UsefulService {
+  this: SQLAPI =>
   private val sql = "do the SQL query and then count words"
-  def doSomeService() = ??? //execute(sql) //подсчитайте количество слов в результате execute
+  def doSomeService(): Int = execute(sql).split(" ").length //подсчитайте количество слов в результате execute
 }
 
 trait ProductionServiceImpl extends UsefulService {
+  this: SQLAPI =>
   private val sql = "do the SQL query and than count 'a' sympols"
-  def doSomeService() = ??? //execute(sql) // подсчитайте сколько символов 'a' в полученной строке
+  def doSomeService(): Int = execute(sql).count(_ == 'a') // подсчитайте сколько символов 'a' в полученной строке
 }
 
 class Application(isTestEnv: Boolean) {
 
   val usefulService: UsefulService = if (isTestEnv)
-   ??? //передайте "test db Resource" в качестве ресурсв в конструктор SQLAPI
+   new SQLAPI("test db Resource") with TestServiceImpl//передайте "test db Resource" в качестве ресурсв в конструктор SQLAPI
   else
-   ??? //передайте "production Resource" в качестве ресурсв в конструктор SQLAPI
+    new SQLAPI("test db Resource") with ProductionServiceImpl//передайте "production Resource" в качестве ресурсв в конструктор SQLAPI
 
   def doTheJob() = usefulService.doSomeService()
 

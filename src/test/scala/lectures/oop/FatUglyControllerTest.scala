@@ -7,6 +7,10 @@ import scala.util.Random
 class FatUglyControllerTest extends FlatSpec with Matchers {
 
   behavior of "FatUglyController"
+  val db = new DataBase()
+  val emailService = new EmailService
+  val messageQueue = new MessageQueue
+
 
   it should "successfully process single file" in {
     val requestBody =
@@ -75,20 +79,20 @@ class FatUglyControllerTest extends FlatSpec with Matchers {
   "writeToDB" should "write to DB" in {
     val id = Random.nextString(10)
     val fileName = Random.nextString(10)
-    controller.writeFileToDB(id, fileName) shouldBe s"Result of insert into files (id, name, created_on) values ('$id', '$fileName', current_timestamp)"
+    db.writeFileToDB(id, fileName) shouldBe s"Result of insert into files (id, name, created_on) values ('$id', '$fileName', current_timestamp)"
   }
 
   "sendMsgToIbmMq" should "send message to IbmMq" in {
     val fileName = Random.nextString(10)
-    controller.sendMsgToIbmMq(fileName) shouldBe s"""Message sending result for <Event name="FileUpload"><Origin>SCALA_FTK_TASK</Origin><FileName>${fileName}</FileName></Event>"""
+    messageQueue.sendMsgToIbmMq(fileName) shouldBe s"""Message sending result for <Event name="FileUpload"><Origin>SCALA_FTK_TASK</Origin><FileName>${fileName}</FileName></Event>"""
   }
 
   "send" should "send email" in {
     val fileName = Random.nextString(10)
-    controller.emailToAdminAboutNewFile(fileName) shouldBe s"""Send email to admin@admin.tinkoff.ru: Theme "File has been uploaded" body "Hey, we have got new file: $fileName""""
+    emailService.emailToAdminAboutNewFile(fileName) shouldBe s"""Send email to admin@admin.tinkoff.ru: Theme "File has been uploaded" body "Hey, we have got new file: $fileName""""
   }
 
-  private val controller = new FatUglyController()
+  private val controller = new FatUglyController(8388608, db, emailService, messageQueue)
 
 
 }

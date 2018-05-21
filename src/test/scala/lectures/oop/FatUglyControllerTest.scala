@@ -2,9 +2,15 @@ package lectures.oop
 
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.util.Random
+
 class FatUglyControllerTest extends FlatSpec with Matchers {
 
   behavior of "FatUglyController"
+  val db = new DataBase()
+  val emailService = new EmailService
+  val messageQueue = new MessageQueue
+
 
   it should "successfully process single file" in {
     val requestBody =
@@ -15,9 +21,7 @@ class FatUglyControllerTest extends FlatSpec with Matchers {
     val (status, body) = controller.processRoute("/api/v1/uploadFile", Some(requestBody.getBytes))
 
     status shouldBe 200
-    body shouldBe
-      """Response:
-        |- saved file file1.txt to 063f83f94e59aac2edd719fab1d179f86084887a.txt (file size: 21)"""
+    body shouldBe "Response:\n- saved file file1.txt to 063f83f94e59aac2edd719fab1d179f86084887a.txt (file size: 21)"
         .stripMargin
   }
 
@@ -33,10 +37,7 @@ class FatUglyControllerTest extends FlatSpec with Matchers {
     val (status, body) = controller.processRoute("/api/v1/uploadFile", Some(requestBody.getBytes))
 
     status shouldBe 200
-    body shouldBe
-      """Response:
-        |- saved file file1.txt to 063f83f94e59aac2edd719fab1d179f86084887a.txt (file size: 21)
-        |- saved file file2.txt to 7387fa41a69d93b59b67bd46ab18a72c81edb767.txt (file size: 23)"""
+    body shouldBe "Response:\n- saved file file1.txt to 063f83f94e59aac2edd719fab1d179f86084887a.txt (file size: 21)\n- saved file file2.txt to 7387fa41a69d93b59b67bd46ab18a72c81edb767.txt (file size: 23)"
         .stripMargin
   }
 
@@ -54,14 +55,44 @@ class FatUglyControllerTest extends FlatSpec with Matchers {
     body shouldBe "Can not upload empty file"
   }
 
-  ignore should "return 400 for forbidden extension" in {
+  it should "return 400 for forbidden extension" in {
+    val requestBody =
+      """DELIMITER
+        |file1.exe
+        |This is body of file1
+      """.stripMargin
+    val (status, body) = controller.processRoute("/api/v1/uploadFile", Some(requestBody.getBytes))
 
+    status shouldBe 400
+    body shouldBe "Request contains forbidden extension"
   }
 
-  ignore should "return 400 for file greater than 8 MB" in {
+  it should "return 400 for file greater than 8 MB" in {
+    var testFile = "a" * (1024 * 10250)
+    val requestBody = "DELIMITER\r\nfile1.txt\r\n" + testFile
+    val (status, body) = controller.processRoute("/api/v1/uploadFile", Some(requestBody.getBytes))
 
+    status shouldBe 400
+    body shouldBe s"File size should not be more than ${controller.MaxFileByteSize / (1024 *1024)} MB"
   }
 
-  private val controller = new FatUglyController()
+  "writeToDB" should "write to DB" in {
+    val id = Random.nextString(10)
+    val fileName = Random.nextString(10)
+    db.writeFileToDB(id, fileName) shouldBe s"Result of insert into files (id, name, created_on) values ('$id', '$fileName', current_timestamp)"
+  }
+
+  "sendMsgToIbmMq" should "send message to IbmMq" in {
+    val fileName = Random.nextString(10)
+    messageQueue.sendMsgToIbmMq(fileName) shouldBe s"""Message sending result for <Event name="FileUpload"><Origin>SCALA_FTK_TASK</Origin><FileName>${fileName}</FileName></Event>"""
+  }
+
+  "send" should "send email" in {
+    val fileName = Random.nextString(10)
+    emailService.emailToAdminAboutNewFile(fileName) shouldBe s"""Send email to admin@admin.tinkoff.ru: Theme "File has been uploaded" body "Hey, we have got new file: $fileName""""
+  }
+
+  private val controller = new FatUglyController(8388608, db, emailService, messageQueue)
+
 
 }

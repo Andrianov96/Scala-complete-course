@@ -7,6 +7,7 @@ import java.util.concurrent.{CopyOnWriteArrayList, _}
 
 import org.jsoup.Jsoup
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 
 /**
@@ -30,7 +31,7 @@ class WebCrawler(numberOfThreads: Int) {
   private val URLFirstPart = "https://en.wikipedia.org/wiki/"
   private val Word = """\b+([А-Яа-яЁё]+)\b+""".r
   private val watchedURLs = new ConcurrentHashMap[String, Long]()
-  private val pagesList = new CopyOnWriteArrayList[String]()
+  private val concurrentQueueURLs = new ConcurrentLinkedQueue[String]()
   val totalWords = new AtomicLong(0)
   private val unVisitedPages = new AtomicInteger(WebPagesLimit)
 
@@ -41,14 +42,13 @@ class WebCrawler(numberOfThreads: Int) {
       val url = getUrlFromList()
       crawlOnePage(url)
     }
-
+    @tailrec
     def getUrlFromList(): String = {
       var url = ""
-      if (pagesList.size() != 0) {
+      if (concurrentQueueURLs.size() != 0) {
         lock.lock()
-        if (pagesList.size() != 0 ) {
-          url = pagesList.get(0)
-          pagesList.remove(0)
+        if (concurrentQueueURLs.size() != 0 ) {
+          url = concurrentQueueURLs.poll()
         }
         lock.unlock()
       } else {
@@ -70,7 +70,7 @@ class WebCrawler(numberOfThreads: Int) {
         val page = doc.toString
         val onThisPage = countWords(page)
         totalWords.getAndAdd(onThisPage)
-        if (pagesList.size() < 1000) {
+        if (concurrentQueueURLs.size() < 1000) {
           val links = doc.getElementsByTag("a")
             .asScala
             .map(e => e.attr("href"))
@@ -78,13 +78,13 @@ class WebCrawler(numberOfThreads: Int) {
             .map(s => URLFirstPart + s.drop(6))
             .filterNot(link => watchedURLs.contains(link))
             .toList
-          pagesList.addAll(links.asJava)
+          concurrentQueueURLs.addAll(links.asJava)
         }
       }
       unVisitedPages.getAndDecrement()
     }
 
-    pagesList.add(InitialPage)
+    concurrentQueueURLs.add(InitialPage)
     val executor = Executors.newFixedThreadPool(numberOfThreads)
 
     def getTasks: Seq[Runnable] =

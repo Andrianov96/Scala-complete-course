@@ -82,13 +82,13 @@ class SeqWriterTOpsTest extends WordSpec with Matchers {
     }
 
     @tailrec
-    def f(w: Writer[Metrics, Int], counter: Int, limit: Int): Writer[Metrics, Int] = {
-      if (counter < limit) {
-        f(w.flatMap(_ => next(counter)), counter + 1, limit)
+    def f(w: Writer[Metrics, Int], amount: Int): Writer[Metrics, Int] = {
+      if (amount > 0) {
+        f(w.flatMap(_ => next(amount)), amount - 1)
       } else w
     }
 
-    val result: Writer[Metrics, Int] = f(Writer(Metrics(), 0), 0, n)
+    val result: Writer[Metrics, Int] = f(Writer(Metrics(), 0), n)
 
     n shouldBe result.written.cnt
   }

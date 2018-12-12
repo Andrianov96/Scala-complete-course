@@ -1,6 +1,6 @@
-package lectures.types.lambda
+package lectures.types
 
-import lectures.types.lambda.Booleans.{FALSE, TRUE}
+import lectures.types.Booleans.{FALSE, TRUE}
 
 
 /**
@@ -69,7 +69,7 @@ object BooleanSupplementary {
     * @param t
     * @return
     */
-  implicit def envokeTruBranch(t: TRUE): TrueBranch = new TrueBranch
+  implicit def envokeTrueBranch(t: TRUE): TrueBranch = new TrueBranch
 
   /**
     * Если вычисленный логический тип == FALSE

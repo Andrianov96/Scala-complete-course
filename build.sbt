@@ -1,57 +1,71 @@
-import _root_.sbt.Keys.{scalaVersion, _}
+import _root_.sbt.Keys._
 
-lazy val oop = config("oop") extend(Test)
+name := "scala-course"
 
-lazy val oopSettings = inConfig(oop)(
-  Seq(
-    testOptions := Seq(Tests.Filter(name =>
-      name.startsWith("lectures.oop")))
-  ) ++ Defaults.testTasks
+version := "1.0"
+
+scalaVersion := "2.12.6"
+
+scalacOptions := Seq(
+  "-encoding", "utf8",
+  "-feature",
+  "-unchecked",
+  "-deprecation",
+  "-target:jvm-1.8",
+  "-Ypartial-unification",
+  "-Ymacro-debug-lite",
+  "-language:experimental.macros")
+
+resolvers ++= Seq(
+  Resolver.jcenterRepo,
+  Resolver.url("jCenter", url("http://jcenter.bintray.com/")),
+  Resolver.sonatypeRepo("releases"),
+  Resolver.sonatypeRepo("snapshots"))
+
+libraryDependencies += "org.scala-lang.modules" %% "scala-async" % "0.9.7"
+
+addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.4")
+
+libraryDependencies += "org.scala-lang" % "scala-library" % "2.12.6"
+
+libraryDependencies += "org.scala-lang" % "scala-reflect" % "2.12.6"
+
+libraryDependencies += "com.samskivert" % "jmustache" % "1.12"
+
+libraryDependencies += "org.typelevel" %% "cats-core" % "1.1.0"
+
+libraryDependencies += "org.typelevel" %% "cats-free" % "1.1.0"
+
+libraryDependencies += "org.typelevel" %% "cats-laws" % "1.1.0"
+
+libraryDependencies += "com.chuusai" %% "shapeless" % "2.3.3"
+
+libraryDependencies += "org.xerial" % "sqlite-jdbc" % "3.7.2"
+
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+
+libraryDependencies += "de.sciss" %% "coroutines-common" % "0.1.0"
+
+libraryDependencies += "org.typelevel" %% "cats-effect" % "1.0.0-RC2"
+
+libraryDependencies += "org.mockito" % "mockito-core" % "1.9.5" % "test"
+
+libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
+
+libraryDependencies ++= Seq("com.typesafe.akka" %% "akka-actor" % "2.5.3",
+  "com.typesafe.akka" %% "akka-testkit" % "2.5.3" % Test,
+  "com.typesafe.akka" %% "akka-remote" % "2.5.3",
+  "com.typesafe.akka" %% "akka-slf4j" % "2.5.3"
 )
 
+libraryDependencies += "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided"
 
-lazy val root = (project in file ("."))
-    .configs(oop)
-    .settings(
-      mainClass in assembly := Some("lectures.oop.TreeTest"),
-      test in assembly := {},
-      assemblyOutputPath in assembly := file(s"target/scala-course-assembly-${version.value}.jar"),
-      oopSettings,
-    libraryDependencies ++= Seq("com.typesafe.akka" %% "akka-actor" % "2.5.3",
-      "com.typesafe.akka" %% "akka-testkit" % "2.5.3" % Test,
-      "com.typesafe.akka" %% "akka-remote" % "2.5.3",
-      "com.typesafe.akka" %% "akka-slf4j" % "2.5.3",
-      "org.scala-lang" % "scala-library" % "2.12.2",
-      "org.scala-lang" % "scala-reflect" % "2.12.2",
-      "org.xerial" % "sqlite-jdbc" % "3.7.2",
-      "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-      "org.mockito" % "mockito-core" % "1.9.5" % "test",
-      "org.scalacheck" %% "scalacheck" % "1.13.4" % "test",
-      "com.typesafe.akka" %% "akka-actor" % "2.5.3",
-      "com.typesafe.akka" %% "akka-testkit" % "2.5.3" % Test,
-      "com.typesafe.akka" %% "akka-remote" % "2.5.3",
-      "com.typesafe.akka" %% "akka-slf4j" % "2.5.3",
-      "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided",
-      "com.softwaremill.macwire" %% "macrosakka" % "2.3.0" % "provided",
-      "com.softwaremill.macwire" %% "util" % "2.3.0",
-      "com.softwaremill.macwire" %% "proxy" % "2.3.0",
-      "com.storm-enroute" %% "scalameter" % "0.9"
-    ),
-    resolvers ++= Seq(
-      Resolver.jcenterRepo,
-      Resolver.url("jCenter", url("http://jcenter.bintray.com/")),
-      Resolver.sonatypeRepo("releases"),
-      Resolver.sonatypeRepo("snapshots")),
-    scalacOptions := Seq(
-      "-encoding", "utf8",
-      "-feature",
-      "-unchecked",
-      "-deprecation",
-      "-target:jvm-1.8",
-      "-Ymacro-debug-lite",
-      "-language:experimental.macros"),
-    name := "scala-course",
-    version := "1.0" ,
-    scalaVersion := "2.12.2"
-  )
+libraryDependencies += "com.softwaremill.macwire" %% "macrosakka" % "2.3.0" % "provided"
 
+libraryDependencies += "com.softwaremill.macwire" %% "util" % "2.3.0"
+
+libraryDependencies += "com.softwaremill.macwire" %% "proxy" % "2.3.0"
+
+libraryDependencies += "com.storm-enroute" %% "scalameter" % "0.9"
+
+parallelExecution in ThisBuild := false

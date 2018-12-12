@@ -3,8 +3,9 @@ package lectures.cat
 import cats.data.{Writer, WriterT}
 import org.scalatest.{Matchers, WordSpec}
 import lectures.cat.WriterTOps._
-import cats.{FlatMap, Id, Applicative => CatsApplicative, Monoid => CatsMonoid}
+import cats.{FlatMap, Id, Semigroup, Applicative => CatsApplicative, Monoid => CatsMonoid}
 
+import scala.annotation.tailrec
 import scala.util.Random
 
 // класс хранящий метрики выполнения программы
@@ -53,6 +54,8 @@ class SeqWriterTOpsTest extends WordSpec with Matchers {
     override def map[A, B](fa: Seq[A])(f: A => B): Seq[B] = fa.map(f)
   }
 
+  implicit val semigroup: Semigroup[Metrics] = (x: Metrics, y: Metrics) => Metrics(x.cnt + 1)
+
   "WriterT provide some constrained fold abilities" in {
 
     val r = Seq(1, 2, 3, 4, 4).filterW(_ > 2)
@@ -77,9 +80,17 @@ class SeqWriterTOpsTest extends WordSpec with Matchers {
     val next = (v: Int) => {
       Writer(Metrics(0, s"next value is $v"), v)
     }
-   val result: Writer[Metrics, Int] = ???
 
-   n shouldBe result.written.cnt
+    @tailrec
+    def f(w: Writer[Metrics, Int], counter: Int, limit: Int): Writer[Metrics, Int] = {
+      if (counter < limit) {
+        f(w.flatMap(_ => next(counter)), counter + 1, limit)
+      } else w
+    }
+
+    val result: Writer[Metrics, Int] = f(Writer(Metrics(), 0), 0, n)
+
+    n shouldBe result.written.cnt
   }
 }
 
